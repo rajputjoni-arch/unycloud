@@ -15,6 +15,7 @@ permissions:
 jobs:
   publish:
     name: Build and Publish
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -58,7 +59,6 @@ jobs:
             ${{ steps.images.outputs.ghcr }}
             ${{ steps.images.outputs.dockerhub }}
           tags: |
-            type=raw,value=edge,enable={{is_default_branch}}
             type=sha
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}

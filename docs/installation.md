@@ -33,15 +33,17 @@ more information.
 ## Docker
 
 The Docker publishing workflow builds Linux/amd64 images from the existing
-Dockerfile after all CI checks pass on `master` pushes and `v*` tags. It pushes
-to both GHCR and Docker Hub:
+Dockerfile after all CI checks pass on pushed `v*` tags. Pull requests and
+`master` pushes still run CI checks but do not publish images. It pushes to both
+GHCR and Docker Hub, which are separate registries:
 
-- GHCR: `ghcr.io/trinity-labs/unycloud`
+- GHCR: `ghcr.io/<github-owner>/unycloud`
 - Docker Hub: `<namespace>/unycloud`
 
-Default-branch builds receive the `edge` tag. Version tags such as `v0.29.3`
-produce `0.29.3` and `0.29` image tags; stable releases also receive `latest`.
-Every build includes a `sha-<short-commit>` tag.
+The GHCR owner is taken from the repository running the workflow, so publishing
+from a fork does not publish to the upstream owner's package. Version tags such
+as `v0.29.3` produce `0.29.3` and `0.29` image tags; stable releases also receive
+`latest`. Every build includes a `sha-<short-commit>` tag.
 
 Before enabling publishing, configure these GitHub Actions repository secrets:
 
@@ -56,11 +58,54 @@ automatic `GITHUB_TOKEN` with `packages: write`; no separate GHCR secret is
 needed. Set the GHCR package visibility to public after the first publication
 if anonymous pulls are required.
 
-After the first successful publication, pull a stable release with:
+### Publish a Version
+
+Enable GitHub Actions in your fork and commit the workflow changes before
+tagging. From the commit you want to release, create and push a new, unused
+semantic version tag. Confirm that `origin` points to your fork:
 
 ```sh
-docker pull ghcr.io/trinity-labs/unycloud:latest
+git remote get-url origin
+git tag -a v0.29.4 -m "Release v0.29.4"
+git push origin v0.29.4
 ```
+
+The tagged commit must contain the publishing workflow; merging to `master` is
+not required to publish a tag. Follow the Continuous Integration run in your
+fork's Actions tab. The existing GoReleaser job also creates a GitHub release
+with binary archives for the tag.
+
+### Use in aa-net-filebrowser
+
+After the publishing job succeeds, replace the existing File Browser `FROM`
+line in the downstream Dockerfile with the published version, substituting your
+fork's GitHub owner:
+
+```dockerfile
+FROM ghcr.io/<github-owner>/unycloud:0.29.4
+```
+
+Alternatively, use the same release from Docker Hub:
+
+```dockerfile
+FROM docker.io/<namespace>/unycloud:0.29.4
+```
+
+Keep the downstream customization steps and rebuild the downstream image:
+
+```sh
+docker build --pull -t aa-net-filebrowser:0.29.4 .
+```
+
+Use a specific version or image digest for reproducible deployments rather than
+`latest`. Private images require registry authentication in the environment
+building the downstream image. The published image uses BusyBox, runs as UID/GID
+1000, and preserves `/bin/filebrowser`, `/srv`, `/config`, and `/database`.
+Review downstream steps that need root, assume a package manager, or depend on
+the old s6 image variant; this workflow does not publish an s6 variant. Test
+customizations, volume permissions, authentication, and startup before deploying.
+
+### Local Build
 
 To build locally, build the binary first, then build the image from this working
 tree:
