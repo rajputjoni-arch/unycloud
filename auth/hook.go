@@ -34,7 +34,7 @@ type limitedBuffer struct {
 }
 
 func (b *limitedBuffer) Write(p []byte) (int, error) {
-	if b.Buffer.Len()+len(p) > b.limit {
+	if b.Len()+len(p) > b.limit {
 		return 0, fmt.Errorf("hook auth output exceeds %d bytes", b.limit)
 	}
 	return b.Buffer.Write(p)
