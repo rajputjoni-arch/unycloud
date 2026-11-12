@@ -5,7 +5,7 @@ project_name: unycloud
 env:
   - GO111MODULE=on
   - CGO_ENABLED=0
-  - GOTOOLCHAIN=go1.27.3
+  - GOTOOLCHAIN=go1.27.4
 
 before:
   hooks:
@@ -53,6 +53,22 @@ archives:
     format_overrides:
       - goos: windows
         formats: ["zip"]
+
+dockers_v2:
+  - images:
+      - "{{ .Env.GHCR_IMAGE }}"
+    tags:
+      - "{{ .Version }}"
+    platforms:
+      - linux/amd64
+    build_args:
+      UNYCLOUD_BINARY: linux/amd64/unycloud
+    extra_files:
+      - docker
+    labels:
+      "org.opencontainers.image.source": "{{ .GitURL }}"
+      "org.opencontainers.image.version": "{{ .Version }}"
+      "org.opencontainers.image.revision": "{{ .FullCommit }}"
 
 checksum:
   name_template: "checksums.txt"
