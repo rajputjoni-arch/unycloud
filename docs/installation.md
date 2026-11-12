@@ -34,29 +34,20 @@ more information.
 
 The Docker publishing workflow builds Linux/amd64 images from the existing
 Dockerfile after all CI checks pass on pushed `v*` tags. Pull requests and
-`master` pushes still run CI checks but do not publish images. It pushes to both
-GHCR and Docker Hub, which are separate registries:
+`master` pushes still run CI checks but do not publish images. Images are
+published only to GitHub Container Registry (GHCR):
 
-- GHCR: `ghcr.io/<github-owner>/unycloud`
-- Docker Hub: `<namespace>/unycloud`
+`ghcr.io/<github-owner>/unycloud`
 
 The GHCR owner is taken from the repository running the workflow, so publishing
 from a fork does not publish to the upstream owner's package. Version tags such
 as `v0.29.3` produce `0.29.3` and `0.29` image tags; stable releases also receive
 `latest`. Every build includes a `sha-<short-commit>` tag.
 
-Before enabling publishing, configure these GitHub Actions repository secrets:
-
-- `DOCKERHUB_USERNAME`: the Docker Hub account used to authenticate.
-- `DOCKERHUB_TOKEN`: a Docker Hub access token with write access to the image
-    repository.
-
-Optionally set the repository variable `DOCKERHUB_NAMESPACE` to publish under
-a Docker Hub organization instead of the login account. Ensure the Docker Hub
-repository exists and the token can push to it. GHCR authentication uses the
-automatic `GITHUB_TOKEN` with `packages: write`; no separate GHCR secret is
-needed. Set the GHCR package visibility to public after the first publication
-if anonymous pulls are required.
+GHCR authentication uses the automatic `GITHUB_TOKEN` with `packages: write`;
+no manually configured registry secrets are needed. Repository or organization
+policies must allow the workflow to write packages. Set the GHCR package
+visibility to public after the first publication if anonymous pulls are required.
 
 ### Publish a Version
 
@@ -83,12 +74,6 @@ fork's GitHub owner:
 
 ```dockerfile
 FROM ghcr.io/<github-owner>/unycloud:0.29.4
-```
-
-Alternatively, use the same release from Docker Hub:
-
-```dockerfile
-FROM docker.io/<namespace>/unycloud:0.29.4
 ```
 
 Keep the downstream customization steps and rebuild the downstream image:
