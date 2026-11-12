@@ -32,9 +32,61 @@ more information.
 
 ## Docker
 
-UnyCloud v0.29.3 is published as binary archives. The Docker setup in this
-repository is intentionally local and generic: build the binary first, then
-build the image from this working tree.
+On pushed `v*` tags, the Continuous Integration release job runs GoReleaser
+after all required checks pass. GoReleaser publishes binary archives to GitHub
+Releases and a Linux/amd64 container image to
+`ghcr.io/<github-owner>/unycloud:<version>`. The owner comes from the repository
+running the workflow, so a fork publishes under its own account, not upstream.
+PR checks and `master` pushes do not publish releases or container images.
+
+### Publish from a Fork
+
+Enable GitHub Actions in your fork and commit the release workflow changes.
+The workflow uses the automatic `GITHUB_TOKEN` with `contents: write` and
+`packages: write`; no Docker Hub account or manually configured registry secret
+is needed. Repository or organization policies must permit package publishing.
+
+From the commit you want to release, confirm that `origin` points to your fork
+and push a new, unused semantic version tag:
+
+```sh
+git remote get-url origin
+git tag -a v0.29.3 -m "Release v0.29.3"
+git push origin v0.29.3
+```
+
+The tagged commit must contain the GHCR publishing configuration. Do not move
+an existing release tag to a different commit; use a new version instead.
+Pushing `v0.29.3` publishes image tag `0.29.3`, without the `v` prefix. Follow
+the Continuous Integration release job in your fork's Actions tab. After the
+first successful publication, set the GHCR package visibility to public if
+anonymous pulls are required.
+
+### Use in aa-net-filebrowser
+
+Once publishing succeeds, replace the existing File Browser base image in the
+downstream Dockerfile. For a fork owned by `rajputjoni-arch`, use:
+
+```dockerfile
+FROM ghcr.io/rajputjoni-arch/unycloud:0.29.3
+```
+
+Keep the downstream customization steps and rebuild from that project's root:
+
+```sh
+docker build --pull -t aa-net-filebrowser:0.29.3 .
+```
+
+Pin a release version or image digest for reproducible deployments. Private
+packages require GHCR authentication in the downstream build environment.
+The image preserves `/bin/filebrowser`, `/srv`, `/config`, and `/database` and
+runs as UID/GID 1000. It uses BusyBox, not the s6 variant; review custom steps
+that require root, a package manager, or s6, and test authentication, volume
+permissions, and startup before deploying.
+
+### Local Build
+
+Build the binary first, then build the image from this working tree:
 
 ```sh
 scripts/build.sh

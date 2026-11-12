@@ -19,7 +19,8 @@ RUN addgroup -g $GID user && \
 
 # Copy the locally built UnyCloud binary while keeping the legacy File Browser
 # executable path inside the container.
-COPY --chown=user:user dist/unycloud /bin/filebrowser
+ARG UNYCLOUD_BINARY=dist/unycloud
+COPY --chown=user:user ${UNYCLOUD_BINARY} /bin/filebrowser
 COPY --chown=user:user docker/common/ /
 COPY --chown=user:user docker/alpine/ /
 COPY --chown=user:user --from=fetcher /sbin/tini-static /bin/tini
