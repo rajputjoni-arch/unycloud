@@ -41,7 +41,7 @@ UnyCloud is a maintained, security-focused fork of File Browser.
 
 ## CVE And Dependency Hygiene
 
-- Use the pinned Go toolchain from `go.mod` (`go1.27.3` since 2026-10-27).
+- Use the pinned Go toolchain from `go.mod` (`go1.27.4` since 2026-11-12).
 - Run `govulncheck` and production `pnpm audit` before release.
 - Keep Dependabot config active for Go modules and frontend packages.
 - When updating dependencies, verify that the replacement does not weaken CSP or

@@ -358,11 +358,7 @@ func brandingRoots(root string) []string {
 }
 
 func handleManifest(w http.ResponseWriter, d *data) (int, error) {
-	name := d.settings.Branding.Name
-	if name == "" {
-		name = "UnyCloud"
-	}
-	name = "UnyCloud"
+	name := "UnyCloud"
 
 	activeTheme := runtimeTheme(d.settings.Branding.Theme)
 	themeColor, backgroundColor := runtimeThemeColors(activeTheme)

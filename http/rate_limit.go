@@ -28,9 +28,9 @@ type failureRateLimiterStats struct {
 	WindowSeconds int `json:"windowSeconds"`
 }
 
-func newFailureRateLimiter(max int, window time.Duration) *failureRateLimiter {
+func newFailureRateLimiter(maxFailures int, window time.Duration) *failureRateLimiter {
 	return &failureRateLimiter{
-		max:     max,
+		max:     maxFailures,
 		window:  window,
 		entries: map[string]failureWindow{},
 	}
@@ -67,7 +67,7 @@ func (l *failureRateLimiter) fail(key string) {
 		return
 	}
 
-	entry.count += 1
+	entry.count++
 	l.entries[key] = entry
 }
 

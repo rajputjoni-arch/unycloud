@@ -1,6 +1,6 @@
 module github.com/filebrowser/filebrowser/v2
 
-go 1.27.3
+go 1.27.4
 
 require (
 	github.com/asdine/storm/v3 v3.2.1
